@@ -1,0 +1,35 @@
+name: TrustSignal Live Artifact Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  trustsignal-live-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate test artifact
+        run: |
+          mkdir -p dist
+          echo "trustsignal test artifact" > dist/test.txt
+
+      - name: Verify artifact with TrustSignal
+        id: trustsignal
+        uses: TrustSignal-dev/TrustSignal-Verify-Artifact@v0.1.0
+        with:
+          api_base_url: ${{ secrets.TRUSTSIGNAL_API_BASE_URL }}
+          api_key: ${{ secrets.TRUSTSIGNAL_API_KEY }}
+          artifact_path: dist/test.txt
+          source: github-actions
+          fail_on_mismatch: "true"
+
+      - name: Print outputs
+        run: |
+          echo "Verification ID: ${{ steps.trustsignal.outputs.verification_id }}"
+          echo "Status: ${{ steps.trustsignal.outputs.status }}"
+          echo "Receipt ID: ${{ steps.trustsignal.outputs.receipt_id }}"
